@@ -20,32 +20,38 @@ def mooreReductionComplete( state_transition_table: "dict[str, list(list(str, in
     data_correct = transitionTableValidator(state_transition_table)
     assert(data_correct == 'Valid'), data_correct
 
+    # Initially, for input strings of length 0, no states are distinguishable. So, all the states together
+    # constitute a single group. Here, we extract all the states and form such a group.
     all_states = ''
     for key in state_transition_table:
         all_states += key
 
+    # This represents the initial group which is just one group consisting of all the states
     previous_groups = [ all_states ]
+    # Initially we start with input strings of length = 1 and keep on incrementing by 1 until we get two
+    # successive strings which give the same groups
     input_string_length: int = 1
 
     while(True):
+        # Generate all possible strings with the current length
         input_strings = generateInputStrings(input_string_length)
         largest_groups = []
 
+        # For each possible input string of current length, get the groups
+        # Keep the group which has the largest number of distinct outputs
         for input_string in input_strings:
             groups = getOutputGroups(state_transition_table, input_string)
             if(len(groups) > len(largest_groups)):
                 largest_groups = groups
-            # print(groups)
         
+        # If we get 2 identical groups with strings of 2 successive lengths, then we know that the
+        # reduction process is complete. Else, we move on to strings of length incremented by 1
         if(previous_groups == largest_groups):
             break
         else:
             input_string_length += 1
             previous_groups = largest_groups
     
-    # print(previous_groups)
-    # print(input_string_length - 1)
-    # print(state_transition_table)
 
     # Remove the redundant states
     for group in previous_groups:
@@ -61,7 +67,6 @@ def mooreReductionComplete( state_transition_table: "dict[str, list(list(str, in
                     if(state_transition_table[key][1][0] == group[extra_state]):
                         state_transition_table[key][1][0] = group[0]
     
-    # print(state_transition_table)
 
 
     # For standardizing the states, we first temporarily give them numeric names in order
@@ -69,14 +74,14 @@ def mooreReductionComplete( state_transition_table: "dict[str, list(list(str, in
     temp_dictionary = {}
 
     for key in state_transition_table:
-        # If key has not already been encountered
+        # If key has not already been encountered, then add it to list
         if key not in temp_numeric_states:
             temp_numeric_states.append(key)
         
-        # Replace the key first
+        # Replace the key first in the dictionary
         temp_dictionary[temp_numeric_states.index(key)] = state_transition_table[key]
 
-        # Check the next states and replace them as necessary
+        # Check the next states in dictionary and replace them as necessary
         if temp_dictionary[temp_numeric_states.index(key)][0][0] not in temp_numeric_states:
             temp_numeric_states.append(temp_dictionary[temp_numeric_states.index(key)][0][0])
         
@@ -87,7 +92,6 @@ def mooreReductionComplete( state_transition_table: "dict[str, list(list(str, in
         
         temp_dictionary[temp_numeric_states.index(key)][1][0] = temp_numeric_states.index(state_transition_table[key][1][0])
     
-    # print(temp_dictionary)
 
 
     # Now replace all the numeric values with alphabets in lexicographic order
@@ -126,23 +130,26 @@ def generateInputStrings(string_length: int) -> list:
 def getOutputGroups( state_transition_table, input_string: str ) -> str:
     groups = {}
 
-    # It is assumed that the first key in the dictionary is the initial state.
-    # If some other state needs to be considered as the initial state, then it has to be taken as input
+    # Output string is generated starting from every state
     present_state: str = ''
     for key in state_transition_table:
         present_state = key
         output_string = ''
 
+        # All symbols in the input string are traversed and output is generated
         for symbol in input_string:
             output_symbol: int = state_transition_table[present_state][int(symbol)][1]
             present_state = state_transition_table[present_state][int(symbol)][0]
             output_string += str(output_symbol)
         
+        # If the generated output string has been encountered before, add the current key to the group
+        # Else, create a new group and the current key.
         if(output_string in groups):
             groups[output_string] += key
         else:
             groups[output_string] = key
     
+    # Prepare a list of the groups and return it
     groups_list = []
     for key in groups:
         groups_list.append(groups[key])
@@ -152,6 +159,8 @@ def getOutputGroups( state_transition_table, input_string: str ) -> str:
 
 
 
+# Validate each state in the state transition table. Each state should be a string containing only
+# a single alphabet.
 
 def stateValidator( state: str ) -> str:
     valid = 'Valid'
@@ -171,6 +180,10 @@ def stateValidator( state: str ) -> str:
     return valid
 
 
+
+# Validate the state transition table. The table should be in the format specified. Each state in the table
+# should be a string with a single alphabet in it and each output symbol should be a integer which can be
+# either 0 or 1. The table can have only 2 types of input symbols - 0 and 1.
 
 def transitionTableValidator( state_transition_table: "dict[str, list(list(str, int), list(str, int))]" ) -> str:
     valid: str = 'Valid'
