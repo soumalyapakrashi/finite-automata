@@ -228,3 +228,26 @@ def transitionTableValidator( state_transition_table: "dict[str, list(list(str, 
             return valid
     
     return valid
+
+
+
+# Print a state transition table
+
+def printStateTransitionTable(state_transition_table: "dict[str, list(list(str, int), list(str, int))]"):
+    print("PS |   Input Symbols")
+    print("   |    0    |    1")
+    print("   | NS | OS | NS | OS")
+    print("----------------------")
+
+    for key in state_transition_table:
+        ns0 = state_transition_table[key][0][0]
+        os0 = state_transition_table[key][0][1]
+        ns1 = state_transition_table[key][1][0]
+        os1 = state_transition_table[key][1][1]
+
+        print(f" {key} |  {ns0} |  {os0} |  {ns1} |  {os1}")
+
+    print("")
+    print("PS: Present State")
+    print("NS: Next State")
+    print("OS: Output Symbol")

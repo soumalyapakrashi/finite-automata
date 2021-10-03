@@ -11,7 +11,9 @@ def debugProgram():
         'F': [ ['B', 0], ['C', 0] ]
     }
 
-    print(mooremachine.mooreReductionComplete(table))
+    final_table = mooremachine.mooreReductionComplete(table)
+    print("")
+    mooremachine.printStateTransitionTable(final_table)
 
 
 # Prints a short description of the input expected and gives an example
@@ -67,7 +69,9 @@ def getData():
 
         print("")
 
-    print(mooremachine.mooreReductionComplete(table))
+    final_table = mooremachine.mooreReductionComplete(table)
+    print("")
+    mooremachine.printStateTransitionTable(final_table)
 
 
 if __name__ == "__main__":
