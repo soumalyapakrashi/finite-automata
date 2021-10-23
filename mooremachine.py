@@ -1,3 +1,48 @@
+def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list(str, str))]" ):
+    stateMissing: bool = False
+
+    for key in state_transition_table:
+        # If both next state and output symbol is present, convert output symbol to integer
+        try:
+            if(state_transition_table[key][0][0] != '-' and state_transition_table[key][0][1] != '-'):
+                state_transition_table[key][0][1] = int(state_transition_table[key][0][1])
+            if(state_transition_table[key][1][0] != '-' and state_transition_table[key][1][1] != '-'):
+                state_transition_table[key][1][1] = int(state_transition_table[key][1][1])
+        except:
+            raise Exception("Invalid output symbol provided")
+
+        # If only output symbol is missing
+        if(state_transition_table[key][0][0] != '-' and state_transition_table[key][0][1] == '-'):
+            state_transition_table[key][0][1] = 0
+        if(state_transition_table[key][1][0] != '-' and state_transition_table[key][1][1] == '-'):
+            state_transition_table[key][1][1] = 0
+
+        # If only next state is missing
+        if(state_transition_table[key][0][0] == '-' and state_transition_table[key][0][1] != '-'):
+            state_transition_table[key][0][0] = 'T'
+            stateMissing = True
+        if(state_transition_table[key][1][0] == '-' and state_transition_table[key][1][1] != '-'):
+            state_transition_table[key][1][0] = 'T'
+            stateMissing = True
+
+        # If both next state and output symbol is missing
+        if(state_transition_table[key][0][0] == '-' and state_transition_table[key][0][1] == '-'):
+            state_transition_table[key][0][0] = 'T'
+            state_transition_table[key][0][1] = 0
+            stateMissing = True
+        if(state_transition_table[key][1][0] == '-' and state_transition_table[key][1][1]):
+            state_transition_table[key][1][0] = 'T'
+            state_transition_table[key][1][1] = 0
+            stateMissing = True
+    
+    if(stateMissing == True):
+        state_transition_table['T'] = [ ['T', 0], ['T', 0] ]
+    
+    print(state_transition_table)
+    return performMooreReduction(state_transition_table)
+
+
+
 # The following function will accept a state transition table of a finite state automata which is completely
 # specified. It is assumed that this automata will have it's states labelled as A, B, C, D, etc and the input
 # and output symbols will comprise only of '0' and '1'.
@@ -15,7 +60,7 @@
 # Similarly, the second element is the "Next State" and "Output Symbol" for input symbol = 1
 # These two are also tuples by themselves as they are both containing 2 ordered values each.
 
-def mooreReductionComplete( state_transition_table: "dict[str, list(list(str, int), list(str, int))]" ):
+def performMooreReduction( state_transition_table: "dict[str, list(list(str, int), list(str, int))]" ):
     # Check whether input data is valid or not. If not, throw AssertionError
     data_correct = transitionTableValidator(state_transition_table)
     assert(data_correct == 'Valid'), data_correct

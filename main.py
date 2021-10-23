@@ -1,3 +1,5 @@
+import argparse
+import csv
 import mooremachine
 
 # This function is used for debugging purposes. This bypasses the lengthy process of giving input in the terminal
@@ -11,7 +13,7 @@ def debugProgram():
         'F': [ ['B', 0], ['C', 0] ]
     }
 
-    final_table = mooremachine.mooreReductionComplete(table)
+    final_table = mooremachine.reduceAutomata(table)
     print("")
     mooremachine.printStateTransitionTable(final_table)
 
@@ -69,10 +71,51 @@ def getData():
 
         print("")
 
-    final_table = mooremachine.mooreReductionComplete(table)
-    print("")
-    mooremachine.printStateTransitionTable(final_table)
+    return table
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--file", help = "Get data from file specified")
+    args = parser.parse_args()
+
+    # If input file has been mentioned
+    if(args.file):
+        table = {}
+
+        # Read the data from the input CSV file
+        with open(args.file, newline = '') as csvfile:
+            filereader = csv.reader(csvfile)
+            isFirstRow: bool = True
+
+            for row in filereader:
+                # The first row is supposed to have the header. So we ignore that.
+                if isFirstRow == False:
+                    table[row[0]] = [ [ row[1], row[2] ], [ row[3], row[4] ] ]
+                isFirstRow = False
+        
+        final_table = mooremachine.reduceAutomata(table)
+
+        # Write data into the output CSV file
+        with open("output.csv", "w", newline = '') as csvfile:
+            filewriter = csv.writer(csvfile)
+            filewriter.writerow([ "PS", "NS0", "OS0", "NS1", "OS1" ])
+
+            for key in final_table:
+                output_list = [ key, final_table[key][0][0], final_table[key][0][1], final_table[key][1][0], final_table[key][1][1] ]
+                filewriter.writerow(output_list)
+
+
+
+
+    # If no file is mentioned as argument, accept data from terminal
+    else:
+        table = getData()
+        final_table = mooremachine.reduceAutomata(table)
+        print("")
+        mooremachine.printStateTransitionTable(final_table)
 
 
 if __name__ == "__main__":
-    getData()
+    # main()
+    debugProgram()
