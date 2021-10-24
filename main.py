@@ -21,7 +21,7 @@ def debugProgram():
 # Prints a short description of the input expected and gives an example
 def printInfoMessage():
     print("NOTE:")
-    print("Currently, the implementation supports only a completely specified Moore Machine. The machine can have one 'present state' and 2 'input symbols' - 0 and 1. For each 'input symbol', each 'present state' will have a corresponding 'next state' and an 'output symbol' which again, has to be either 0 or 1. An example of the state trasition table of such a machine is shown as follows for reference:")
+    print("Currently, the implementation supports both, completely and incompletely specified Moore Machine. The machine can have one 'present state' and 2 'input symbols' - 0 and 1. For each 'input symbol', each 'present state' will have a corresponding 'next state' and an 'output symbol' which again, has to be either 0 or 1. In case of an incompletely specified machine, either the next state can be missing, or the output symbol can be missing, or both the next state and the output symbol can be missing. An example of the state trasition table of such a machine is shown as follows for reference:")
     print("")
 
     print("PS |   Input Symbols")
@@ -41,13 +41,13 @@ def printInfoMessage():
     print("OS: Output Symbol")
 
 
-# Gets the state transition table as input from user and prints the standardized version of the reduced
-# state transition table
+# Gets the state transition table as input from user from the terminal
 def getData():
     table = {}
 
     printInfoMessage()
 
+    # Get the number of states from user
     print("\nInput State Transition Table:")
     nos_states = 0
     try:
@@ -55,19 +55,17 @@ def getData():
     except:
         print("Invalid value of the total number of states")
 
+    # Get the list of next states considering each state as the present state.
+    # Also, prepare the state transition table
     for state_counter in range(nos_states):
-        try:
-            cs = input(f"Current State (State Number: {state_counter + 1}) = ")
-            print("\nFor Input Symbol: 0")
-            ns0 = input("Next State = ")
-            os0 = int(input("Output Symbol = "))
-            print("\nFor Input Symbol: 1")
-            ns1 = input("Next State = ")
-            os1 = int(input("Output Symbol = "))
-            table[cs] = [ [ ns0, os0], [ ns1, os1 ] ]
-        except:
-            print("\nInvalid Input")
-            break
+        cs = input(f"Current State (State Number: {state_counter + 1}) = ")
+        print("\nFor Input Symbol: 0")
+        ns0 = input("Next State = ")
+        os0 = input("Output Symbol = ")
+        print("\nFor Input Symbol: 1")
+        ns1 = input("Next State = ")
+        os1 = input("Output Symbol = ")
+        table[cs] = [ [ ns0, os0], [ ns1, os1 ] ]
 
         print("")
 
@@ -75,19 +73,21 @@ def getData():
 
 
 def main():
+    # Setup the argument parser along with the supported options
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help = "Get data from file specified")
     args = parser.parse_args()
 
     # If input file has been mentioned
     if(args.file):
-        table = {}
+        table: "dict[str, list(list(str, str), list(str, str))]" = {}
 
         # Read the data from the input CSV file
         with open(args.file, newline = '') as csvfile:
             filereader = csv.reader(csvfile)
             isFirstRow: bool = True
 
+            # Iterate through every row in the CSV file and add data to dictionary 'table'
             for row in filereader:
                 # The first row is supposed to have the header. So we ignore that.
                 if isFirstRow == False:
@@ -99,9 +99,13 @@ def main():
         # Write data into the output CSV file
         with open("output.csv", "w", newline = '') as csvfile:
             filewriter = csv.writer(csvfile)
+            # Write the header to the output file
             filewriter.writerow([ "PS", "NS0", "OS0", "NS1", "OS1" ])
 
+            # Iterate through each row in the state transition table and write it to output file
             for key in final_table:
+                # We have to create a list containing the elements we wish to write in each row. This is because
+                # CSV module expects to get argument as a list while writing to file
                 output_list = [ key, final_table[key][0][0], final_table[key][0][1], final_table[key][1][0], final_table[key][1][1] ]
                 filewriter.writerow(output_list)
 
@@ -117,5 +121,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    debugProgram()
+    main()
+    # debugProgram()

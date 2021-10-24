@@ -1,3 +1,11 @@
+# Checks whether the given state transition table is incomplete or not.
+# If it is not, then just converts the output symbols in int and moves on to Moore reduction.
+# If it is, then, replaces all missing states with state 'T' and all missing output symbols with 0.
+# Also, if required, adds a state 'T' to the table which acts as a Trap State corresponding to which,
+# all next states are the trap state 'T' itself and output symbols are 0.
+
+# Obviously, here the choice of trap state name, and output symbols are completely arbitrary.
+
 def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list(str, str))]" ):
     stateMissing: bool = False
 
@@ -11,13 +19,13 @@ def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list
         except:
             raise Exception("Invalid output symbol provided")
 
-        # If only output symbol is missing
+        # If only output symbol is missing, replace it with 0
         if(state_transition_table[key][0][0] != '-' and state_transition_table[key][0][1] == '-'):
             state_transition_table[key][0][1] = 0
         if(state_transition_table[key][1][0] != '-' and state_transition_table[key][1][1] == '-'):
             state_transition_table[key][1][1] = 0
 
-        # If only next state is missing
+        # If only next state is missing, replace it with 'T' (trap state)
         if(state_transition_table[key][0][0] == '-' and state_transition_table[key][0][1] != '-'):
             state_transition_table[key][0][0] = 'T'
             stateMissing = True
@@ -25,7 +33,7 @@ def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list
             state_transition_table[key][1][0] = 'T'
             stateMissing = True
 
-        # If both next state and output symbol is missing
+        # If both next state and output symbol is missing, replace with 'T' and 0 respectively
         if(state_transition_table[key][0][0] == '-' and state_transition_table[key][0][1] == '-'):
             state_transition_table[key][0][0] = 'T'
             state_transition_table[key][0][1] = 0
@@ -35,11 +43,14 @@ def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list
             state_transition_table[key][1][1] = 0
             stateMissing = True
     
+    # If a trap state has been added to any missing states, add it as a present state to the table.
+    # For the trap state as a present state, all corresponding next states will be the trap state
+    # itself and output symbols will be 0.
     if(stateMissing == True):
         state_transition_table['T'] = [ ['T', 0], ['T', 0] ]
     
-    print(state_transition_table)
     return performMooreReduction(state_transition_table)
+
 
 
 
@@ -158,6 +169,7 @@ def performMooreReduction( state_transition_table: "dict[str, list(list(str, int
 # Generates all possible combinations of bit strings with the given length and returns a list containing them
 
 def generateInputStrings(string_length: int) -> list:
+    # A string of length n will have 2^n combinations of binary values
     total_combinations = pow(2, string_length)
     combinations = []
 
