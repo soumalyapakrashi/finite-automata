@@ -1,7 +1,6 @@
 PS,NS0,OS0,NS1,OS1
-A,E,0,D,1
-B,F,0,D,0
-C,E,0,B,1
-D,F,0,B,0
-E,C,0,F,1
-F,B,0,C,0
+A,B,0,E,0
+B,E,0,D,0
+C,D,1,A,0
+D,C,1,E,0
+E,B,0,D,0

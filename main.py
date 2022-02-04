@@ -76,7 +76,12 @@ def main():
     # Setup the argument parser along with the supported options
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help = "Get data from file specified")
+    parser.add_argument("-v", "--verbose", help = "Print intermediate steps while performing the calculations", action = "store_true")
     args = parser.parse_args()
+
+    verbose = False
+    if(args.verbose):
+        verbose = True
 
     # If input file has been mentioned
     if(args.file):
@@ -94,7 +99,7 @@ def main():
                     table[row[0]] = [ [ row[1], row[2] ], [ row[3], row[4] ] ]
                 isFirstRow = False
         
-        final_table = mooremachine.reduceAutomata(table)
+        final_table = mooremachine.reduceAutomata(table, verbose)
 
         # Write data into the output CSV file
         with open("output.csv", "w", newline = '') as csvfile:
@@ -115,7 +120,7 @@ def main():
     # If no file is mentioned as argument, accept data from terminal
     else:
         table = getData()
-        final_table = mooremachine.reduceAutomata(table)
+        final_table = mooremachine.reduceAutomata(table, verbose)
         print("")
         mooremachine.printStateTransitionTable(final_table)
 

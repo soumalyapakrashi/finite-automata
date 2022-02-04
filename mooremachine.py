@@ -6,8 +6,15 @@
 
 # Obviously, here the choice of trap state name, and output symbols are completely arbitrary.
 
-def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list(str, str))]" ):
+
+def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list(str, str))]", verbose: bool = False ):
     stateMissing: bool = False
+    isIncomplete: bool = False
+
+    # Print the initial table
+    if(verbose == True):
+        print("Initial Table:")
+        printStateTransitionTable(state_transition_table)
 
     for key in state_transition_table:
         # If both next state and output symbol is present, convert output symbol to integer
@@ -22,26 +29,32 @@ def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list
         # If only output symbol is missing, replace it with 0
         if(state_transition_table[key][0][0] != '-' and state_transition_table[key][0][1] == '-'):
             state_transition_table[key][0][1] = 0
+            isIncomplete = True
         if(state_transition_table[key][1][0] != '-' and state_transition_table[key][1][1] == '-'):
             state_transition_table[key][1][1] = 0
+            isIncomplete = True
 
         # If only next state is missing, replace it with 'T' (trap state)
         if(state_transition_table[key][0][0] == '-' and state_transition_table[key][0][1] != '-'):
             state_transition_table[key][0][0] = 'T'
             stateMissing = True
+            isIncomplete = True
         if(state_transition_table[key][1][0] == '-' and state_transition_table[key][1][1] != '-'):
             state_transition_table[key][1][0] = 'T'
             stateMissing = True
+            isIncomplete = True
 
         # If both next state and output symbol is missing, replace with 'T' and 0 respectively
         if(state_transition_table[key][0][0] == '-' and state_transition_table[key][0][1] == '-'):
             state_transition_table[key][0][0] = 'T'
             state_transition_table[key][0][1] = 0
             stateMissing = True
+            isIncomplete = True
         if(state_transition_table[key][1][0] == '-' and state_transition_table[key][1][1]):
             state_transition_table[key][1][0] = 'T'
             state_transition_table[key][1][1] = 0
             stateMissing = True
+            isIncomplete = True
     
     # If a trap state has been added to any missing states, add it as a present state to the table.
     # For the trap state as a present state, all corresponding next states will be the trap state
@@ -49,7 +62,13 @@ def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list
     if(stateMissing == True):
         state_transition_table['T'] = [ ['T', 0], ['T', 0] ]
     
-    return performMooreReduction(state_transition_table)
+    # If the initial table was an incomplete table, then print the final complete table
+    if(verbose == True):
+        if(isIncomplete == True):
+            print("\nThe state transition table is incomplete. After converting to a complete table, we get:")
+            printStateTransitionTable(state_transition_table)
+    
+    return performMooreReduction(state_transition_table, verbose)
 
 
 
@@ -71,10 +90,10 @@ def reduceAutomata( state_transition_table: "dict[str, list(list(str, str), list
 # Similarly, the second element is the "Next State" and "Output Symbol" for input symbol = 1
 # These two are also tuples by themselves as they are both containing 2 ordered values each.
 
-def performMooreReduction( state_transition_table: "dict[str, list(list(str, int), list(str, int))]" ):
+def performMooreReduction( state_transition_table: "dict[str, list(list(str, int), list(str, int))]", verbose: bool = False ):
     # Check whether input data is valid or not. If not, throw AssertionError
     data_correct = transitionTableValidator(state_transition_table)
-    assert(data_correct == 'Valid'), data_correct
+    # assert(data_correct == 'Valid'), data_correct
 
     # Initially, for input strings of length 0, no states are distinguishable. So, all the states together
     # constitute a single group. Here, we extract all the states and form such a group.
@@ -84,6 +103,11 @@ def performMooreReduction( state_transition_table: "dict[str, list(list(str, int
 
     # This represents the initial group which is just one group consisting of all the states
     previous_groups = [ all_states ]
+
+    if(verbose == True):
+        print("\nInput String Length = 0")
+        print("Groups =", previous_groups)
+    
     # Initially we start with input strings of length = 1 and keep on incrementing by 1 until we get two
     # successive strings which give the same groups
     input_string_length: int = 1
@@ -93,12 +117,18 @@ def performMooreReduction( state_transition_table: "dict[str, list(list(str, int
         input_strings = generateInputStrings(input_string_length)
         largest_groups = []
 
+        if(verbose == True):
+            print("\nInput String Length =", input_string_length)
+
         # For each possible input string of current length, get the groups
         # Keep the group which has the largest number of distinct outputs
         for input_string in input_strings:
             groups = getOutputGroups(state_transition_table, input_string)
             if(len(groups) > len(largest_groups)):
                 largest_groups = groups
+            
+            if(verbose == True):
+                print(f"{input_string}: {groups}")
         
         # If we get 2 identical groups with strings of 2 successive lengths, then we know that the
         # reduction process is complete. Else, we move on to strings of length incremented by 1
@@ -108,6 +138,9 @@ def performMooreReduction( state_transition_table: "dict[str, list(list(str, int
             input_string_length += 1
             previous_groups = largest_groups
     
+    # Print the largest group
+    if(verbose == True):
+        print("\nLargest Group =", previous_groups)
 
     # Remove the redundant states
     for group in previous_groups:
@@ -122,6 +155,11 @@ def performMooreReduction( state_transition_table: "dict[str, list(list(str, int
                         state_transition_table[key][0][0] = group[0]
                     if(state_transition_table[key][1][0] == group[extra_state]):
                         state_transition_table[key][1][0] = group[0]
+    
+    # Print state transition table after reduction
+    if(verbose == True):
+        print("\nState Transition Table after reduction:")
+        printStateTransitionTable(state_transition_table)
     
 
 
@@ -158,6 +196,11 @@ def performMooreReduction( state_transition_table: "dict[str, list(list(str, int
         state_transition_table[new_key] = temp_dictionary[key]
         state_transition_table[new_key][0][0] = chr(ord('A') + temp_dictionary[key][0][0])
         state_transition_table[new_key][1][0] = chr(ord('A') + temp_dictionary[key][1][0])
+    
+    # Print state transition table after standardization
+    if(verbose == True):
+        print("\nState Transition Table after Standardization:")
+        printStateTransitionTable(state_transition_table)
     
     return state_transition_table
                     
@@ -290,7 +333,7 @@ def transitionTableValidator( state_transition_table: "dict[str, list(list(str, 
 
 # Print a state transition table
 
-def printStateTransitionTable(state_transition_table: "dict[str, list(list(str, int), list(str, int))]"):
+def printStateTransitionTable(state_transition_table: "dict[str, list(list(str, str), list(str, str))]"):
     print("PS |   Input Symbols")
     print("   |    0    |    1")
     print("   | NS | OS | NS | OS")
