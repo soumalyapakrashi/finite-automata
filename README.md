@@ -4,9 +4,9 @@ This program as of its current implementation, performs Moore Reduction. Further
 
 ## Contents
 
-1. Detailed Scope
-2. Usage Details
-3. Future Scope
+1. [Detailed Scope](https://github.com/soumalyapakrashi/finite-automata#detailed-scope)
+2. [Usage Details](https://github.com/soumalyapakrashi/finite-automata#usage-details)
+3. [Future Scope](https://github.com/soumalyapakrashi/finite-automata#future-scope)
 
 ## Detailed Scope
 
